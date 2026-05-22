@@ -162,6 +162,9 @@
             display: flex;
             gap: 6px;
             z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90%;
         }
 
         .dot {
@@ -352,6 +355,7 @@
             padding: 40px 20px;
             text-align: center;
             transition: 0.5s;
+            background-image: radial-gradient(circle at center, #163663 0%, #0b2342 100%);
         }
 
         .welcome-overlay.hidden {
@@ -455,8 +459,8 @@
     <div class="welcome-overlay" id="welcomeOverlay">
         <div class="welcome-top">
             <div class="welcome-logos">
-                <img src="https://i.ibb.co/S7mjckrm/Picsart-26-04-21-00-32-12-093.png" alt="شعار جامعة بغداد" class="welcome-logo">
-                <img src="https://i.ibb.co/k2wkqTCy/Screenshot.png" alt="شعار كلية الإعلام" class="welcome-logo">
+                <img src="https://i.ibb.co/YFgmH84X/FB-IMG-1779471134189.jpg" alt="شعار جامعة بغداد الجديد" class="welcome-logo">
+                <img src="https://i.ibb.co/9kWQLwTj/IMG-674.jpg" alt="شعار كلية الإعلام الجديد" class="welcome-logo">
             </div>
             <div class="welcome-title">
                 <h1>جولة كلية الإعلام الافتراضية</h1>
@@ -477,8 +481,8 @@
     <header>
         <div class="header-right">
             <div class="logos">
-                <img src="https://i.ibb.co/S7mjckrm/Picsart-26-04-21-00-32-12-093.png" alt="شعار جامعة بغداد" class="header-logo">
-                <img src="https://i.ibb.co/k2wkqTCy/Screenshot.png" alt="شعار كلية الإعلام" class="header-logo">
+                <img src="https://i.ibb.co/YFgmH84X/FB-IMG-1779471134189.jpg" alt="شعار جامعة بغداد الجديد" class="header-logo">
+                <img src="https://i.ibb.co/9kWQLwTj/IMG-674.jpg" alt="شعار كلية الإعلام الجديد" class="header-logo">
             </div>
             <div class="title-container">
                 <h1>كلية الإعلام - جامعة بغداد</h1>
@@ -523,17 +527,21 @@
             document.getElementById('welcomeOverlay').classList.add('hidden');
         }
 
-        // تم إضافة صور كلية الإعلام الحقيقية التي التقطتها هنا بالترتيب!
         const scenesData = [
-            { id: 'scene0', name: 'المتحف', img: 'https://i.ibb.co/CKdw4yt5/PXL-20260427-130552738-PHOTOSPHERE-2.jpg' },
-            { id: 'scene1', name: 'الإذاعة¹', img: 'https://i.ibb.co/23n0hRZm/PXL-20260428-133446270-PHOTOSPHERE.jpg' },
-            { id: 'scene2', name: 'الإذاعة²', img: 'https://i.ibb.co/yFFGbNmG/PXL-20260429-080717238-PHOTOSPHERE.jpg' },
-            { id: 'scene3', name: 'قاعة الإجتماعات', img: 'https://i.ibb.co/8Lt1CkVm/PXL-20260429-113506883-PHOTOSPHERE.jpg' },
-            { id: 'scene4', name: 'القاعة التكنلوجية', img: 'https://i.ibb.co/SwgkmYy8/PXL-20260429-114224390-PHOTOSPHERE.jpg' },
-            { id: 'scene5', name: 'قاعة تدريسية¹', img: 'https://i.ibb.co/b54tcwkg/PXL-20260429-115429992-PHOTOSPHERE.jpg' },
-            { id: 'scene6', name: 'قاعة تدريسية²', img: 'https://i.ibb.co/chMJLYWW/PXL-20260429-125024337-PHOTOSPHERE.jpg' },
-            { id: 'scene7', name: 'مختبر المدى', img: 'https://i.ibb.co/gL4nZByh/PXL-20260429-125417906-PHOTOSPHERE.jpg' },
-            { id: 'scene8', name: 'موقع إضافي (تأكد من اسمه)', img: 'https://i.ibb.co/WpFTbZjJ/PXL-20260429-131322142-PHOTOSPHERE.jpg' }
+            { id: 'scene0', name: 'المتحف', img: 'https://i.ibb.co/6JXmbp0t/PXL-20260427-130552738-PHOTOSPHERE-2.jpg' },
+            { id: 'scene1', name: 'الإذاعة¹', img: 'https://i.ibb.co/WNpG2Yj6/download-bin-19.jpg' },
+            { id: 'scene2', name: 'الإذاعة²', img: 'https://i.ibb.co/dsJH0PXX/download-bin-10.jpg' },
+            { id: 'scene3', name: 'الأستديو19¹', img: 'https://i.ibb.co/DPw73XWD/PXL-20260429-113139523-PHOTOSPHERE.jpg' },
+            { id: 'scene4', name: 'الأستديو19²', img: 'https://i.ibb.co/SDDQJ3BB/download-bin-20.jpg' },
+            { id: 'scene5', name: 'قاعة الأجتماعات¹', img: 'https://i.ibb.co/Lzpf5HXX/download-bin-13.jpg' },
+            { id: 'scene6', name: 'قاعة الأجتماعات²', img: 'https://i.ibb.co/N6Kk2Y8g/PXL-20260429-114536929-PHOTOSPHERE.jpg' },
+            { id: 'scene7', name: 'القاعة التقنية', img: 'https://i.ibb.co/Fb3k5PsC/download-bin-14.jpg' },
+            { id: 'scene8', name: 'قاعة تدريسية¹', img: 'https://i.ibb.co/Lhs9cXV1/download-bin-15.jpg' },
+            { id: 'scene9', name: 'قاعة تدريسية²', img: 'https://i.ibb.co/1fS9pYXf/download-bin-16.jpg' },
+            { id: 'scene10', name: 'مختبر المدى¹', img: 'https://i.ibb.co/m53P8BHY/PXL-20260429-131122064-PHOTOSPHERE.jpg' },
+            { id: 'scene11', name: 'مختبر المدى²', img: 'https://i.ibb.co/rRprT5kS/download-bin-17.jpg' },
+            { id: 'scene12', name: 'قاعة الحرية¹', img: 'https://i.ibb.co/8DVxSmtV/PXL-20260503-131829373-PHOTOSPHERE.jpg' },
+            { id: 'scene13', name: 'قاعة الحرية²', img: 'https://i.ibb.co/XZ9wbvtC/PXL-20260503-132121708-PHOTOSPHERE.jpg' }
         ];
 
         let viewer = null;
@@ -624,16 +632,18 @@
                 const card = document.getElementById(`card-${index}`);
                 const dot = document.getElementById(`dot-${index}`);
 
-                card.classList.remove('active');
-                dot.classList.remove('active', 'visited');
+                if(card) card.classList.remove('active');
+                if(dot) dot.classList.remove('active', 'visited');
 
                 if (index === currentIndex) {
-                    card.classList.add('active');
-                    dot.classList.add('active');
-                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    if(card) {
+                        card.classList.add('active');
+                        card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    }
+                    if(dot) dot.classList.add('active');
                 }
                 
-                if (visitedScenes.has(index)) {
+                if (visitedScenes.has(index) && dot) {
                     dot.classList.add('visited');
                 }
             });
