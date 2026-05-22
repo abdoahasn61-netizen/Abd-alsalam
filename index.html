@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>جولة افتراضية 360 - كلية الإعلام</title>
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
+    <script src="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* --- الألوان والتنسيقات الأساسية --- */
+        :root {
+            --bg-dark: #0b2342;
+            --bg-panel: #112d53;
+            --accent-yellow: #d99c2b;
+            --text-light: #ffffff;
+            --text-gray: #a0b0c0;
+            --border-color: #2a4b75;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- شريط الرأس العلوي --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 10px;
+            background-color: var(--bg-dark);
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logos {
+            display: flex;
+            gap: 6px;
+        }
+
+        .header-logo {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid var(--border-color);
+            object-fit: contain;
+            padding: 2px;
+        }
+
+        .title-container h1 {
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        
+        .title-container p {
+            font-size: 9px;
+            color: var(--text-gray);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 12px;
+            transition: 0.3s;
+        }
+
+        .tour-btn {
+            background-color: transparent;
+            color: var(--accent-yellow);
+            border: 1px solid var(--accent-yellow);
+            padding: 4px 8px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        /* --- الحاوية الرئيسية --- */
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* --- مساحة عرض 360 --- */
+        .viewer-container {
+            flex: 1;
+            position: relative;
+            background-color: #000;
+        }
+
+        #panorama {
+            width: 100%;
+            height: 100%;
+        }
+
+        .scene-label-overlay {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(11, 35, 66, 0.85);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: bold;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid var(--accent-yellow);
+        }
+
+        .scene-label-overlay i {
+            color: #ff4757;
+        }
+
+        .progress-dots {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .dot {
+            width: 10px;
+            height: 5px;
+            border-radius: 3px;
+            background-color: rgba(255, 255, 255, 0.4);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .dot.active {
+            background-color: var(--accent-yellow);
+            width: 15px;
+        }
+        
+        .dot.visited:not(.active) {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* --- لوحة التحكم السفلية/الجانبية --- */
+        .nav-panel {
+            background-color: var(--bg-dark);
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .controls-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+        }
+
+        .nav-btn {
+            background-color: var(--bg-panel);
+            color: #fff;
+            border: 1px solid var(--border-color);
+            padding: 6px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .nav-btn:hover {
+            background-color: var(--border-color);
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            left: 0;
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 6px 8px;
+            font-size: 13px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .locations-label {
+            font-size: 11px;
+            color: var(--text-gray);
+            text-align: right;
+            margin-bottom: 2px;
+        }
+
+        .scenes-list {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) var(--bg-dark);
+        }
+
+        .scene-card {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 6px 10px;
+            min-width: 140px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .scene-card.active {
+            border-color: var(--accent-yellow);
+        }
+
+        .scene-number {
+            background-color: var(--border-color);
+            color: #fff;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 3px;
+            font-size: 11px;
+        }
+
+        .scene-card.active .scene-number {
+            background-color: var(--accent-yellow);
+            color: #000;
+            font-weight: bold;
+        }
+
+        .scene-name {
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        /* --- نافذة البحث --- */
+        .search-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 35, 66, 0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 80px;
+        }
+
+        .search-overlay.active {
+            display: flex;
+        }
+
+        .close-search {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #fff;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .search-input {
+            width: 85%;
+            max-width: 500px;
+            padding: 12px;
+            border-radius: 20px;
+            border: none;
+            outline: none;
+            font-size: 16px;
+            margin-bottom: 20px;
+            direction: rtl;
+        }
+
+        .search-results {
+            width: 85%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .search-result-item {
+            background: var(--bg-panel);
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            font-size: 14px;
+        }
+
+        /* --- شاشة الترحيب --- */
+        .welcome-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-dark);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 40px 20px;
+            text-align: center;
+            transition: 0.5s;
+        }
+
+        .welcome-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .welcome-top {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .welcome-logos {
+            display: flex;
+            gap: 20px;
+        }
+
+        .welcome-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 3px solid var(--accent-yellow);
+            padding: 5px;
+            object-fit: contain;
+        }
+
+        .welcome-title h1 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--accent-yellow);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .welcome-title p {
+            color: var(--text-gray);
+            font-size: 14px;
+        }
+
+        .start-btn {
+            background-color: var(--accent-yellow);
+            color: #000;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: 0.3s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .welcome-bottom {
+            color: var(--text-gray);
+            font-size: 12px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+            width: 80%;
+        }
+
+        .creator-name {
+            color: var(--text-light);
+            font-weight: bold;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* --- استجابة الشاشات الكبيرة --- */
+        @media (min-width: 768px) {
+            header { padding: 10px 20px; }
+            .header-logo { width: 45px; height: 45px; }
+            .title-container h1 { font-size: 16px; }
+            .title-container p { font-size: 11px; }
+            .icon-btn { width: 35px; height: 35px; font-size: 14px; }
+            .tour-btn { padding: 6px 15px; font-size: 14px; }
+            .main-wrapper { flex-direction: row; }
+            .nav-panel { width: 300px; border-right: 1px solid var(--border-color); border-top: none; padding: 15px; gap: 15px;}
+            .scenes-list { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+            .scene-card { padding: 10px; min-width: unset; }
+            .scene-name { font-size: 14px; }
+            .scene-number { width: 25px; height: 25px; font-size: 12px; }
+            .nav-btn { padding: 8px 20px; font-size: 14px; }
+            .welcome-title h1 { font-size: 28px; }
+            .welcome-logo { width: 120px; height: 120px; }
+            .start-btn { font-size: 22px; padding: 20px 60px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-overlay" id="welcomeOverlay">
+        <div class="welcome-top">
+            <div class="welcome-logos">
+                <img src="https://i.ibb.co/S7mjckrm/Picsart-26-04-21-00-32-12-093.png" alt="شعار جامعة بغداد" class="welcome-logo">
+                <img src="https://i.ibb.co/k2wkqTCy/Screenshot.png" alt="شعار كلية الإعلام" class="welcome-logo">
+            </div>
+            <div class="welcome-title">
+                <h1>جولة كلية الإعلام الافتراضية</h1>
+                <p>استكشف أقسام الكلية ومرافقها بتقنية 360 درجة</p>
+            </div>
+        </div>
+        
+        <button class="start-btn" onclick="startTour()">
+            <i class="fas fa-play"></i> ابدأ الجولة
+        </button>
+        
+        <div class="welcome-bottom">
+            تم تصميم وتطوير هذه الجولة بواسطة الطالب:
+            <div class="creator-name">عبدالسلام احمد</div>
+        </div>
+    </div>
+
+    <header>
+        <div class="header-right">
+            <div class="logos">
+                <img src="https://i.ibb.co/S7mjckrm/Picsart-26-04-21-00-32-12-093.png" alt="شعار جامعة بغداد" class="header-logo">
+                <img src="https://i.ibb.co/k2wkqTCy/Screenshot.png" alt="شعار كلية الإعلام" class="header-logo">
+            </div>
+            <div class="title-container">
+                <h1>كلية الإعلام - جامعة بغداد</h1>
+                <p>الجولة الافتراضية 360°</p>
+            </div>
+        </div>
+        <div class="header-left">
+            <button class="icon-btn" id="searchBtn"><i class="fas fa-search"></i></button>
+            <button class="icon-btn" id="shareBtn"><i class="fas fa-arrow-up-right-from-square"></i></button>
+            <button class="tour-btn"><i class="fas fa-globe"></i> Tour 360°</button>
+        </div>
+    </header>
+
+    <div class="main-wrapper">
+        <div class="viewer-container">
+            <div class="scene-label-overlay">
+                <i class="fas fa-map-pin"></i> <span id="currentSceneName">جاري التحميل...</span>
+            </div>
+            <div id="panorama"></div>
+            <div class="progress-dots" id="progressDotsContainer"></div>
+        </div>
+
+        <aside class="nav-panel">
+            <div class="controls-row">
+                <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                <button class="nav-btn" onclick="nextScene()">التالي <i class="fas fa-caret-left"></i></button>
+                <button class="nav-btn" onclick="prevScene()"><i class="fas fa-caret-right"></i> السابق</button>
+            </div>
+            <div class="locations-label">مواقع الجولة</div>
+            <div class="scenes-list" id="scenesListContainer"></div>
+        </aside>
+    </div>
+
+    <div class="search-overlay" id="searchOverlay">
+        <i class="fas fa-times close-search" id="closeSearchBtn"></i>
+        <input type="text" class="search-input" id="searchInput" placeholder="ابحث عن قاعة أو موقع...">
+        <div class="search-results" id="searchResults"></div>
+    </div>
+
+    <script>
+        function startTour() {
+            document.getElementById('welcomeOverlay').classList.add('hidden');
+        }
+
+        // تم إضافة صور كلية الإعلام الحقيقية التي التقطتها هنا بالترتيب!
+        const scenesData = [
+            { id: 'scene0', name: 'المتحف', img: 'https://i.ibb.co/CKdw4yt5/PXL-20260427-130552738-PHOTOSPHERE-2.jpg' },
+            { id: 'scene1', name: 'الإذاعة¹', img: 'https://i.ibb.co/23n0hRZm/PXL-20260428-133446270-PHOTOSPHERE.jpg' },
+            { id: 'scene2', name: 'الإذاعة²', img: 'https://i.ibb.co/yFFGbNmG/PXL-20260429-080717238-PHOTOSPHERE.jpg' },
+            { id: 'scene3', name: 'قاعة الإجتماعات', img: 'https://i.ibb.co/8Lt1CkVm/PXL-20260429-113506883-PHOTOSPHERE.jpg' },
+            { id: 'scene4', name: 'القاعة التكنلوجية', img: 'https://i.ibb.co/SwgkmYy8/PXL-20260429-114224390-PHOTOSPHERE.jpg' },
+            { id: 'scene5', name: 'قاعة تدريسية¹', img: 'https://i.ibb.co/b54tcwkg/PXL-20260429-115429992-PHOTOSPHERE.jpg' },
+            { id: 'scene6', name: 'قاعة تدريسية²', img: 'https://i.ibb.co/chMJLYWW/PXL-20260429-125024337-PHOTOSPHERE.jpg' },
+            { id: 'scene7', name: 'مختبر المدى', img: 'https://i.ibb.co/gL4nZByh/PXL-20260429-125417906-PHOTOSPHERE.jpg' },
+            { id: 'scene8', name: 'موقع إضافي (تأكد من اسمه)', img: 'https://i.ibb.co/WpFTbZjJ/PXL-20260429-131322142-PHOTOSPHERE.jpg' }
+        ];
+
+        let viewer = null;
+        let currentIndex = 0;
+        const visitedScenes = new Set([0]);
+
+        function initViewer() {
+            const scenesConfig = {};
+            scenesData.forEach(scene => {
+                scenesConfig[scene.id] = {
+                    type: "equirectangular",
+                    panorama: scene.img,
+                    autoLoad: true
+                };
+            });
+
+            if (viewer !== null) {
+                viewer.destroy();
+            }
+
+            viewer = pannellum.viewer('panorama', {
+                default: {
+                    firstScene: scenesData[currentIndex].id,
+                    autoLoad: true,
+                    sceneFadeDuration: 1000,
+                    compass: false,
+                    showControls: true
+                },
+                scenes: scenesConfig
+            });
+
+            viewer.on('scenechange', function(sceneId) {
+                currentIndex = scenesData.findIndex(s => s.id === sceneId);
+                visitedScenes.add(currentIndex);
+                updateUI();
+            });
+
+            renderUIElements();
+            updateUI();
+        }
+
+        function goTo(index) {
+            if (index >= 0 && index < scenesData.length) {
+                viewer.loadScene(scenesData[index].id);
+            }
+        }
+
+        function nextScene() {
+            let nextIdx = (currentIndex + 1) % scenesData.length;
+            goTo(nextIdx);
+        }
+
+        function prevScene() {
+            let prevIdx = (currentIndex - 1 + scenesData.length) % scenesData.length;
+            goTo(prevIdx);
+        }
+
+        function renderUIElements() {
+            const listContainer = document.getElementById('scenesListContainer');
+            const dotsContainer = document.getElementById('progressDotsContainer');
+            
+            listContainer.innerHTML = '';
+            dotsContainer.innerHTML = '';
+
+            scenesData.forEach((scene, index) => {
+                const card = document.createElement('div');
+                card.className = 'scene-card';
+                card.id = `card-${index}`;
+                card.onclick = () => goTo(index);
+                card.innerHTML = `
+                    <div class="scene-number">${index + 1}</div>
+                    <div class="scene-name">${scene.name}</div>
+                `;
+                listContainer.appendChild(card);
+
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                dot.id = `dot-${index}`;
+                dot.onclick = () => goTo(index);
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('currentSceneName').innerText = scenesData[currentIndex].name;
+
+            scenesData.forEach((scene, index) => {
+                const card = document.getElementById(`card-${index}`);
+                const dot = document.getElementById(`dot-${index}`);
+
+                card.classList.remove('active');
+                dot.classList.remove('active', 'visited');
+
+                if (index === currentIndex) {
+                    card.classList.add('active');
+                    dot.classList.add('active');
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+                
+                if (visitedScenes.has(index)) {
+                    dot.classList.add('visited');
+                }
+            });
+        }
+
+        const searchBtn = document.getElementById('searchBtn');
+        const closeSearchBtn = document.getElementById('closeSearchBtn');
+        const searchOverlay = document.getElementById('searchOverlay');
+        const searchInput = document.getElementById('searchInput');
+        const searchResults = document.getElementById('searchResults');
+
+        searchBtn.onclick = () => {
+            searchOverlay.classList.add('active');
+            searchInput.focus();
+            renderSearchResults('');
+        };
+
+        closeSearchBtn.onclick = () => searchOverlay.classList.remove('active');
+
+        searchInput.addEventListener('input', (e) => {
+            renderSearchResults(e.target.value);
+        });
+
+        function renderSearchResults(query) {
+            searchResults.innerHTML = '';
+            const filtered = scenesData.filter(s => s.name.includes(query));
+            
+            filtered.forEach(scene => {
+                const item = document.createElement('div');
+                item.className = 'search-result-item';
+                item.innerText = scene.name;
+                item.onclick = () => {
+                    const idx = scenesData.findIndex(s => s.id === scene.id);
+                    goTo(idx);
+                    searchOverlay.classList.remove('active');
+                };
+                searchResults.appendChild(item);
+            });
+        }
+
+        document.getElementById('shareBtn').onclick = async () => {
+            const url = window.location.href;
+            if (navigator.share) {
+                try {
+                    await navigator.share({
+                        title: 'الجولة الافتراضية 360',
+                        text: 'شاهد الجولة الافتراضية لكلية الإعلام',
+                        url: url
+                    });
+                } catch (err) {
+                    console.log('Share canceled', err);
+                }
+            } else {
+                navigator.clipboard.writeText(url);
+                alert('تم نسخ الرابط!');
+            }
+        };
+
+        document.getElementById('fullscreenBtn').onclick = () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        };
+
+        window.onload = initViewer;
+    </script>
+</body>
+</html>
