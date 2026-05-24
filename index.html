@@ -182,12 +182,12 @@
         }
 
         @keyframes pulse {
-            0 { transform: scale(1); opacity: 0.6; }
+            0% { transform: scale(1); opacity: 0.6; }
             50% { transform: scale(1.15); opacity: 1; }
             100% { transform: scale(1); opacity: 0.6; }
         }
 
-        /* --- طبقة دليل المستخدم (الميزة الجديدة) --- */
+        /* --- طبقة دليل المستخدم --- */
         .guide-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -625,7 +625,7 @@
                 <button class="nav-btn" onclick="nextScene()">التالي <i class="fas fa-caret-left"></i></button>
                 <button class="nav-btn" onclick="prevScene()"><i class="fas fa-caret-right"></i> السابق</button>
             </div>
-            <div class="locations-label">مواقع الجولة</div>
+            <div class="locations-label">م مواقع الجولة</div>
             <div class="scenes-list" id="scenesListContainer"></div>
         </aside>
     </div>
@@ -640,7 +640,6 @@
         function startTour() {
             document.getElementById('welcomeOverlay').classList.add('hidden');
             
-            // إظهار دليل المستخدم ذكياً مباشرة بعد شاشة الترحيب
             setTimeout(() => {
                 document.getElementById('userGuideOverlay').classList.add('active');
             }, 600);
@@ -648,6 +647,8 @@
 
         function closeUserGuide() {
             document.getElementById('userGuideOverlay').classList.remove('active');
+            // بدء الدوران التلقائي بعد إغلاق الدليل مباشرة
+            resetAutoRotateTimer();
         }
 
         const scenesData = [
@@ -671,6 +672,9 @@
         let currentIndex = 0;
         const visitedScenes = new Set([0]);
         let preloadTimeout = null;
+        let autoRotateTimeout = null;
+        const ROTATE_SPEED = 1.5; // سرعة دوران هادئة وسينمائية
+        const IDLE_TIME_BEFORE_ROTATE = 5000; // وقت الانتظار بالملي ثانية (5 ثوانٍ) قبل بدء التدوير
 
         function getGlMaxTextureSize() {
             try {
@@ -727,6 +731,29 @@
             }, 2000);
         }
 
+        // دوال التحكم الذكي بالتدوير التلقائي السينمائي
+        function stopAutoRotate() {
+            if (viewer) {
+                viewer.stopAutoRotate();
+            }
+            if (autoRotateTimeout) clearTimeout(autoRotateTimeout);
+        }
+
+        function resetAutoRotateTimer() {
+            stopAutoRotate();
+            // إذا كان دليل المستخدم أو شاشة الترحيب ظاهرة، لا نشغل التدوير
+            if (document.getElementById('userGuideOverlay').classList.contains('active') || 
+                !document.getElementById('welcomeOverlay').classList.contains('hidden')) {
+                return;
+            }
+            
+            autoRotateTimeout = setTimeout(() => {
+                if (viewer) {
+                    viewer.startAutoRotate(ROTATE_SPEED);
+                }
+            }, IDLE_TIME_BEFORE_ROTATE);
+        }
+
         async function initViewer() {
             renderUIElements();
             updateUI();
@@ -767,7 +794,18 @@
                 visitedScenes.add(currentIndex);
                 updateUI();
                 triggerSmartPreload(currentIndex);
+                resetAutoRotateTimer(); // إعادة ضبط الموقت عند دخول مشهد جديد
             });
+
+            // ربط أحداث تفاعل المستخدم لإيقاف التدوير فوراً عند لمس الشاشة
+            const panoramaEl = document.getElementById('panorama');
+            panoramaEl.addEventListener('mousedown', stopAutoRotate);
+            panoramaEl.addEventListener('touchstart', stopAutoRotate, {passive: true});
+            panoramaEl.addEventListener('wheel', stopAutoRotate);
+            
+            // إعادة تشغيل الموقت بعد انتهاء تفاعل المستخدم وتركه للشاشة
+            panoramaEl.addEventListener('mouseup', resetAutoRotateTimer);
+            panoramaEl.addEventListener('touchend', resetAutoRotateTimer);
 
             if(blurLoader) blurLoader.classList.remove('active');
             triggerSmartPreload(currentIndex);
@@ -778,6 +816,7 @@
         }
 
         async function goTo(index) {
+            stopAutoRotate(); // إيقاف الدوران أثناء مرحلة الانتقال
             if (index >= 0 && index < scenesData.length) {
                 const scene = scenesData[index];
                 const blurLoader = document.getElementById('blurLoader');
@@ -868,12 +907,16 @@
         const searchResults = document.getElementById('searchResults');
 
         searchBtn.onclick = () => {
+            stopAutoRotate();
             searchOverlay.classList.add('active');
             searchInput.focus();
             renderSearchResults('');
         };
 
-        closeSearchBtn.onclick = () => searchOverlay.classList.remove('active');
+        closeSearchBtn.onclick = () => {
+            searchOverlay.classList.remove('active');
+            resetAutoRotateTimer();
+        };
 
         searchInput.addEventListener('input', (e) => {
             renderSearchResults(e.target.value);
@@ -900,6 +943,7 @@
         }
 
         document.getElementById('shareBtn').onclick = async () => {
+            stopAutoRotate();
             const url = window.location.href;
             if (navigator.share) {
                 try {
@@ -915,6 +959,7 @@
                 navigator.clipboard.writeText(url);
                 alert('تم نسخ الرابط!');
             }
+            resetAutoRotateTimer();
         };
 
         document.getElementById('fullscreenBtn').onclick = () => {
