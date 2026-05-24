@@ -143,7 +143,7 @@
             color: #ff4757;
         }
 
-        /* --- طبقة التغبيش الذكية والحديثة (الفكرة الأولى) --- */
+        /* --- طبقة التغبيش الذكية --- */
         .blur-loader {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -155,7 +155,7 @@
             justify-content: center;
             align-items: center;
             z-index: 15;
-            transition: opacity 0.4s ease;
+            transition: opacity 0.3s ease;
             opacity: 0;
         }
 
@@ -587,6 +587,7 @@
         let viewer = null;
         let currentIndex = 0;
         const visitedScenes = new Set([0]);
+        let preloadTimeout = null;
 
         function getGlMaxTextureSize() {
             try {
@@ -612,13 +613,10 @@
                         resolve(url);
                         return;
                     }
-                    
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
-                    
                     canvas.width = maxSize;
                     canvas.height = (img.height / img.width) * maxSize; 
-                    
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     resolve(canvas.toDataURL('image/jpeg', 0.85));
                 };
@@ -627,6 +625,29 @@
                 };
                 img.src = url;
             });
+        }
+
+        // دالة التحميل المسبق الذكي للمشاهد المحيطة بالمستخدم حالياً
+        function triggerSmartPreload(currentIndex) {
+            if (preloadTimeout) clearTimeout(preloadTimeout);
+
+            // ننتظر ثانيتين بعد استقرار المشهد قبل استغلال خلفية المتصفح لعدم التسبب بأي ثقل
+            preloadTimeout = setTimeout(async () => {
+                const nextIndex = (currentIndex + 1) % scenesData.length;
+                const prevIndex = (currentIndex - 1 + scenesData.length) % scenesData.length;
+
+                // 1. معالجة وتجهيز الصورة القادمة في الذاكرة
+                if (!scenesData[nextIndex].processedImg) {
+                    scenesData[nextIndex].processedImg = await resizeImageIfNeeded(scenesData[nextIndex].img, MAX_ALLOWED_SIZE);
+                    console.log(`Preloaded next scene: ${scenesData[nextIndex].name}`);
+                }
+
+                // 2. معالجة وتجهيز الصورة السابقة في الذاكرة
+                if (!scenesData[prevIndex].processedImg) {
+                    scenesData[prevIndex].processedImg = await resizeImageIfNeeded(scenesData[prevIndex].img, MAX_ALLOWED_SIZE);
+                    console.log(`Preloaded previous scene: ${scenesData[prevIndex].name}`);
+                }
+            }, 2000);
         }
 
         async function initViewer() {
@@ -668,9 +689,13 @@
                 currentIndex = scenesData.findIndex(s => s.id === sceneId);
                 visitedScenes.add(currentIndex);
                 updateUI();
+                
+                // تشغيل الفحص والتحميل المسبق للغرف المجاورة تلقائياً
+                triggerSmartPreload(currentIndex);
             });
 
             if(blurLoader) blurLoader.classList.remove('active');
+            triggerSmartPreload(currentIndex);
 
             setTimeout(() => {
                 if(viewer) viewer.resize();
@@ -683,10 +708,10 @@
                 const blurLoader = document.getElementById('blurLoader');
                 const nextSceneTarget = document.getElementById('nextSceneTarget');
                 
+                // إذا لم تلحق ميزة التحميل المسبق تجهيز الصورة (مثال: مستخدم يتنقل بسرعة فائقة)، يتم تفعيل التغبيش فوراً كجدار حماية للـ UI
                 if (!scene.processedImg) {
                     if(nextSceneTarget) nextSceneTarget.innerText = scene.name;
                     if(blurLoader) blurLoader.classList.add('active');
-                    
                     scene.processedImg = await resizeImageIfNeeded(scene.img, MAX_ALLOWED_SIZE);
                 }
                 
