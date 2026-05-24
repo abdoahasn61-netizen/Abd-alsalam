@@ -182,9 +182,71 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.6; }
+            0 { transform: scale(1); opacity: 0.6; }
             50% { transform: scale(1.15); opacity: 1; }
             100% { transform: scale(1); opacity: 0.6; }
+        }
+
+        /* --- طبقة دليل المستخدم (الميزة الجديدة) --- */
+        .guide-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(11, 35, 66, 0.85);
+            z-index: 80;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            cursor: pointer;
+            padding: 20px;
+        }
+        
+        .guide-overlay.active {
+            display: flex;
+        }
+
+        .guide-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .guide-hand-icon {
+            font-size: 45px;
+            color: var(--accent-yellow);
+            animation: handSwipe 2s infinite ease-in-out;
+        }
+
+        .guide-text {
+            font-size: 15px;
+            font-weight: 500;
+            max-width: 280px;
+            line-height: 1.6;
+        }
+
+        .guide-close-tip {
+            margin-top: 25px;
+            font-size: 11px;
+            color: var(--text-gray);
+            border: 1px dashed var(--border-color);
+            padding: 5px 15px;
+            border-radius: 20px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        @keyframes handSwipe {
+            0% { transform: translateX(-30px) rotate(-10deg); opacity: 0.3; }
+            50% { transform: translateX(30px) rotate(10deg); opacity: 1; }
+            100% { transform: translateX(-30px) rotate(-10deg); opacity: 0.3; }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
 
         .progress-dots {
@@ -483,6 +545,7 @@
             .welcome-title h1 { font-size: 28px; }
             .welcome-logo { width: 120px; height: 120px; }
             .start-btn { font-size: 22px; padding: 20px 60px; }
+            .guide-text { font-size: 17px; max-width: 350px; }
         }
     </style>
 </head>
@@ -541,6 +604,17 @@
                 </div>
             </div>
 
+            <div class="guide-overlay" id="userGuideOverlay" onclick="closeUserGuide()">
+                <div class="guide-box">
+                    <div class="guide-hand-icon"><i class="fas fa-hand-pointer"></i></div>
+                    <div class="guide-text">اسحب الشاشة أو حرك إصبعك في جميع الاتجاهات لاستكشاف القاعة بزاوية 360 درجة.</div>
+                    <div class="guide-text" style="color: var(--accent-yellow); margin-top: 5px; font-size: 13px;">
+                        <i class="fas fa-th-list"></i> استخدم اللوحة السفلية للتنقل بين غرف الكلية.
+                    </div>
+                    <div class="guide-close-tip">اضغط في أي مكان بالشاشة لبدء الاستكشاف</div>
+                </div>
+            </div>
+
             <div id="panorama"></div>
             <div class="progress-dots" id="progressDotsContainer"></div>
         </div>
@@ -565,6 +639,15 @@
     <script>
         function startTour() {
             document.getElementById('welcomeOverlay').classList.add('hidden');
+            
+            // إظهار دليل المستخدم ذكياً مباشرة بعد شاشة الترحيب
+            setTimeout(() => {
+                document.getElementById('userGuideOverlay').classList.add('active');
+            }, 600);
+        }
+
+        function closeUserGuide() {
+            document.getElementById('userGuideOverlay').classList.remove('active');
         }
 
         const scenesData = [
@@ -627,25 +710,19 @@
             });
         }
 
-        // دالة التحميل المسبق الذكي للمشاهد المحيطة بالمستخدم حالياً
         function triggerSmartPreload(currentIndex) {
             if (preloadTimeout) clearTimeout(preloadTimeout);
 
-            // ننتظر ثانيتين بعد استقرار المشهد قبل استغلال خلفية المتصفح لعدم التسبب بأي ثقل
             preloadTimeout = setTimeout(async () => {
                 const nextIndex = (currentIndex + 1) % scenesData.length;
                 const prevIndex = (currentIndex - 1 + scenesData.length) % scenesData.length;
 
-                // 1. معالجة وتجهيز الصورة القادمة في الذاكرة
                 if (!scenesData[nextIndex].processedImg) {
                     scenesData[nextIndex].processedImg = await resizeImageIfNeeded(scenesData[nextIndex].img, MAX_ALLOWED_SIZE);
-                    console.log(`Preloaded next scene: ${scenesData[nextIndex].name}`);
                 }
 
-                // 2. معالجة وتجهيز الصورة السابقة في الذاكرة
                 if (!scenesData[prevIndex].processedImg) {
                     scenesData[prevIndex].processedImg = await resizeImageIfNeeded(scenesData[prevIndex].img, MAX_ALLOWED_SIZE);
-                    console.log(`Preloaded previous scene: ${scenesData[prevIndex].name}`);
                 }
             }, 2000);
         }
@@ -689,8 +766,6 @@
                 currentIndex = scenesData.findIndex(s => s.id === sceneId);
                 visitedScenes.add(currentIndex);
                 updateUI();
-                
-                // تشغيل الفحص والتحميل المسبق للغرف المجاورة تلقائياً
                 triggerSmartPreload(currentIndex);
             });
 
@@ -708,7 +783,6 @@
                 const blurLoader = document.getElementById('blurLoader');
                 const nextSceneTarget = document.getElementById('nextSceneTarget');
                 
-                // إذا لم تلحق ميزة التحميل المسبق تجهيز الصورة (مثال: مستخدم يتنقل بسرعة فائقة)، يتم تفعيل التغبيش فوراً كجدار حماية للـ UI
                 if (!scene.processedImg) {
                     if(nextSceneTarget) nextSceneTarget.innerText = scene.name;
                     if(blurLoader) blurLoader.classList.add('active');
