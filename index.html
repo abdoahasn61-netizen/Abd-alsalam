@@ -34,6 +34,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh; /* أبعاد ديناميكية متوافقة مع متصفحات الموبايل حديثاً */
             overflow: hidden;
         }
 
@@ -99,19 +100,6 @@
             transition: 0.3s;
         }
 
-        .tour-btn {
-            background-color: transparent;
-            color: var(--accent-yellow);
-            border: 1px solid var(--accent-yellow);
-            padding: 4px 8px;
-            border-radius: 5px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 12px;
-            cursor: pointer;
-        }
-
         /* --- الحاوية الرئيسية --- */
         .main-wrapper {
             display: flex;
@@ -125,6 +113,7 @@
             flex: 1;
             position: relative;
             background-color: #000;
+            min-height: 180px; /* جدار حماية لمنع انهيار مساحة العرض في الموبايل الأفقي */
         }
 
         #panorama {
@@ -433,14 +422,13 @@
             margin-top: 5px;
         }
 
-        /* --- استجابة الشاشات الكبيرة --- */
-        @media (min-width: 768px) {
+        /* --- استجابة الشاشات الكبيرة (تم تحسين الاستعلام ليشمل الارتفاع أيضاً) --- */
+        @media (min-width: 768px) and (min-height: 550px) {
             header { padding: 10px 20px; }
             .header-logo { width: 45px; height: 45px; }
             .title-container h1 { font-size: 16px; }
             .title-container p { font-size: 11px; }
             .icon-btn { width: 35px; height: 35px; font-size: 14px; }
-            .tour-btn { padding: 6px 15px; font-size: 14px; }
             .main-wrapper { flex-direction: row; }
             .nav-panel { width: 300px; border-right: 1px solid var(--border-color); border-top: none; padding: 15px; gap: 15px;}
             .scenes-list { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
@@ -492,7 +480,6 @@
         <div class="header-left">
             <button class="icon-btn" id="searchBtn"><i class="fas fa-search"></i></button>
             <button class="icon-btn" id="shareBtn"><i class="fas fa-arrow-up-right-from-square"></i></button>
-            <button class="tour-btn"><i class="fas fa-globe"></i> Tour 360°</button>
         </div>
     </header>
 
@@ -548,15 +535,66 @@
         let currentIndex = 0;
         const visitedScenes = new Set([0]);
 
-        function initViewer() {
-            const scenesConfig = {};
-            scenesData.forEach(scene => {
-                scenesConfig[scene.id] = {
-                    type: "equirectangular",
-                    panorama: scene.img,
-                    autoLoad: true
+        // دالة لفحص ومعرفة أكبر جودة للملمس (Texture) يدعمها المعالج الحالي
+        function getGlMaxTextureSize() {
+            try {
+                const canvas = document.createElement('canvas');
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) {
+                    return gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                }
+            } catch (e) {
+                console.error("WebGL support error");
+            }
+            return 4096; 
+        }
+
+        // تحديد الحد الآمن للموبايل والأجهزة لمنع الانهيار والبطء
+        const MAX_ALLOWED_SIZE = Math.min(getGlMaxTextureSize(), 4096);
+
+        // دالة لمعالجة وتصغير حجم الصورة ديناميكياً في الذاكرة لتطابق كرت الشاشة
+        function resizeImageIfNeeded(url, maxSize) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = "anonymous"; 
+                img.onload = function() {
+                    if (img.width <= maxSize) {
+                        resolve(url);
+                        return;
+                    }
+                    
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.width = maxSize;
+                    canvas.height = (img.height / img.width) * maxSize; 
+                    
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    resolve(canvas.toDataURL('image/jpeg', 0.85));
                 };
+                img.onerror = function() {
+                    resolve(url);
+                };
+                img.src = url;
             });
+        }
+
+        async function initViewer() {
+            renderUIElements();
+            updateUI();
+
+            const firstScene = scenesData[currentIndex];
+            document.getElementById('currentSceneName').innerText = "جاري تهيئة المشهد الأول...";
+            
+            // تصغير الصورة الأولى ديناميكياً إذا تطلب العتاد ذلك
+            firstScene.processedImg = await resizeImageIfNeeded(firstScene.img, MAX_ALLOWED_SIZE);
+
+            const scenesConfig = {};
+            scenesConfig[firstScene.id] = {
+                type: "equirectangular",
+                panorama: firstScene.processedImg,
+                autoLoad: true
+            };
 
             if (viewer !== null) {
                 viewer.destroy();
@@ -564,7 +602,7 @@
 
             viewer = pannellum.viewer('panorama', {
                 default: {
-                    firstScene: scenesData[currentIndex].id,
+                    firstScene: firstScene.id,
                     autoLoad: true,
                     sceneFadeDuration: 1000,
                     compass: false,
@@ -579,13 +617,28 @@
                 updateUI();
             });
 
-            renderUIElements();
-            updateUI();
+            // إجبار المعاين على إعادة حساب مساحة العرض بعد الاستقرار
+            setTimeout(() => {
+                if(viewer) viewer.resize();
+            }, 500);
         }
 
-        function goTo(index) {
+        async function goTo(index) {
             if (index >= 0 && index < scenesData.length) {
-                viewer.loadScene(scenesData[index].id);
+                const scene = scenesData[index];
+                
+                if (!scene.processedImg) {
+                    document.getElementById('currentSceneName').innerText = "جاري تهيئة أبعاد العرض...";
+                    scene.processedImg = await resizeImageIfNeeded(scene.img, MAX_ALLOWED_SIZE);
+                }
+                
+                viewer.addScene(scene.id, {
+                    type: "equirectangular",
+                    panorama: scene.processedImg,
+                    autoLoad: true
+                });
+                
+                viewer.loadScene(scene.id);
             }
         }
 
@@ -649,6 +702,7 @@
             });
         }
 
+        // إعدادات وتصفية دالة البحث مع توحيد صياغة الأحرف العربية
         const searchBtn = document.getElementById('searchBtn');
         const closeSearchBtn = document.getElementById('closeSearchBtn');
         const searchOverlay = document.getElementById('searchOverlay');
@@ -669,7 +723,10 @@
 
         function renderSearchResults(query) {
             searchResults.innerHTML = '';
-            const filtered = scenesData.filter(s => s.name.includes(query));
+            const normalizeArabic = (text) => text.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').trim();
+            const cleanQuery = normalizeArabic(query);
+            
+            const filtered = scenesData.filter(s => normalizeArabic(s.name).includes(cleanQuery));
             
             filtered.forEach(scene => {
                 const item = document.createElement('div');
@@ -711,6 +768,10 @@
                 document.exitFullscreen();
             }
         };
+
+        window.addEventListener('resize', () => {
+            if (viewer) viewer.resize();
+        });
 
         window.onload = initViewer;
     </script>
