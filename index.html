@@ -34,7 +34,7 @@
             display: flex;
             flex-direction: column;
             height: 100vh;
-            height: 100dvh; /* أبعاد ديناميكية متوافقة مع متصفحات الموبايل حديثاً */
+            height: 100dvh;
             overflow: hidden;
         }
 
@@ -113,7 +113,7 @@
             flex: 1;
             position: relative;
             background-color: #000;
-            min-height: 180px; /* جدار حماية لمنع انهيار مساحة العرض في الموبايل الأفقي */
+            min-height: 180px;
         }
 
         #panorama {
@@ -141,6 +141,50 @@
 
         .scene-label-overlay i {
             color: #ff4757;
+        }
+
+        /* --- طبقة التغبيش الذكية والحديثة (الفكرة الأولى) --- */
+        .blur-loader {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            background: rgba(11, 35, 66, 0.4);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            transition: opacity 0.4s ease;
+            opacity: 0;
+        }
+
+        .blur-loader.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .loader-card {
+            background: rgba(17, 45, 83, 0.9);
+            border: 1px solid var(--accent-yellow);
+            padding: 20px 35px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            max-width: 85%;
+        }
+
+        .pulse-icon {
+            font-size: 26px;
+            color: var(--accent-yellow);
+            animation: pulse 1.5s infinite;
+            margin-bottom: 12px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.15); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.6; }
         }
 
         .progress-dots {
@@ -422,7 +466,7 @@
             margin-top: 5px;
         }
 
-        /* --- استجابة الشاشات الكبيرة (تم تحسين الاستعلام ليشمل الارتفاع أيضاً) --- */
+        /* --- استجابة الشاشات الكبيرة --- */
         @media (min-width: 768px) and (min-height: 550px) {
             header { padding: 10px 20px; }
             .header-logo { width: 45px; height: 45px; }
@@ -488,6 +532,15 @@
             <div class="scene-label-overlay">
                 <i class="fas fa-map-pin"></i> <span id="currentSceneName">جاري التحميل...</span>
             </div>
+            
+            <div class="blur-loader" id="blurLoader">
+                <div class="loader-card">
+                    <div class="pulse-icon"><i class="fas fa-walking"></i></div>
+                    <div style="font-size: 12px; color: var(--text-gray); margin-bottom: 3px;">جاري الانتقال إلى</div>
+                    <div id="nextSceneTarget" style="font-size: 16px; font-weight: bold; color: #fff;"></div>
+                </div>
+            </div>
+
             <div id="panorama"></div>
             <div class="progress-dots" id="progressDotsContainer"></div>
         </div>
@@ -535,7 +588,6 @@
         let currentIndex = 0;
         const visitedScenes = new Set([0]);
 
-        // دالة لفحص ومعرفة أكبر جودة للملمس (Texture) يدعمها المعالج الحالي
         function getGlMaxTextureSize() {
             try {
                 const canvas = document.createElement('canvas');
@@ -549,10 +601,8 @@
             return 4096; 
         }
 
-        // تحديد الحد الآمن للموبايل والأجهزة لمنع الانهيار والبطء
         const MAX_ALLOWED_SIZE = Math.min(getGlMaxTextureSize(), 4096);
 
-        // دالة لمعالجة وتصغير حجم الصورة ديناميكياً في الذاكرة لتطابق كرت الشاشة
         function resizeImageIfNeeded(url, maxSize) {
             return new Promise((resolve) => {
                 const img = new Image();
@@ -584,9 +634,12 @@
             updateUI();
 
             const firstScene = scenesData[currentIndex];
-            document.getElementById('currentSceneName').innerText = "جاري تهيئة المشهد الأول...";
+            const blurLoader = document.getElementById('blurLoader');
+            const nextSceneTarget = document.getElementById('nextSceneTarget');
             
-            // تصغير الصورة الأولى ديناميكياً إذا تطلب العتاد ذلك
+            if(nextSceneTarget) nextSceneTarget.innerText = firstScene.name;
+            if(blurLoader) blurLoader.classList.add('active');
+
             firstScene.processedImg = await resizeImageIfNeeded(firstScene.img, MAX_ALLOWED_SIZE);
 
             const scenesConfig = {};
@@ -617,7 +670,8 @@
                 updateUI();
             });
 
-            // إجبار المعاين على إعادة حساب مساحة العرض بعد الاستقرار
+            if(blurLoader) blurLoader.classList.remove('active');
+
             setTimeout(() => {
                 if(viewer) viewer.resize();
             }, 500);
@@ -626,9 +680,13 @@
         async function goTo(index) {
             if (index >= 0 && index < scenesData.length) {
                 const scene = scenesData[index];
+                const blurLoader = document.getElementById('blurLoader');
+                const nextSceneTarget = document.getElementById('nextSceneTarget');
                 
                 if (!scene.processedImg) {
-                    document.getElementById('currentSceneName').innerText = "جاري تهيئة أبعاد العرض...";
+                    if(nextSceneTarget) nextSceneTarget.innerText = scene.name;
+                    if(blurLoader) blurLoader.classList.add('active');
+                    
                     scene.processedImg = await resizeImageIfNeeded(scene.img, MAX_ALLOWED_SIZE);
                 }
                 
@@ -639,6 +697,8 @@
                 });
                 
                 viewer.loadScene(scene.id);
+                
+                if(blurLoader) blurLoader.classList.remove('active');
             }
         }
 
@@ -702,7 +762,6 @@
             });
         }
 
-        // إعدادات وتصفية دالة البحث مع توحيد صياغة الأحرف العربية
         const searchBtn = document.getElementById('searchBtn');
         const closeSearchBtn = document.getElementById('closeSearchBtn');
         const searchOverlay = document.getElementById('searchOverlay');
