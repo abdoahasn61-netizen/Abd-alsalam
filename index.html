@@ -187,7 +187,7 @@
         }
 
         @keyframes pulse {
-            0 { transform: scale(1); opacity: 0.6; }
+            0% { transform: scale(1); opacity: 0.6; }
             50% { transform: scale(1.15); opacity: 1; }
             100% { transform: scale(1); opacity: 0.6; }
         }
@@ -531,11 +531,31 @@
             width: 80%;
         }
 
-        .creator-name {
-            color: var(--text-light);
+        /* تمييز الرابط الشخصي للمطور */
+        .creator-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--accent-yellow);
             font-weight: bold;
             font-size: 14px;
             margin-top: 5px;
+            text-decoration: none;
+            border-bottom: 1px dashed var(--accent-yellow);
+            padding-bottom: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .creator-link:hover {
+            transform: scale(1.06);
+            color: #fff;
+            border-bottom-style: solid;
+            border-bottom-color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+        }
+
+        .creator-link i {
+            font-size: 13px;
         }
 
         /* --- استجابة الشاشات الكبيرة --- */
@@ -556,6 +576,7 @@
             .welcome-logo { width: 120px; height: 120px; }
             .start-btn { font-size: 22px; padding: 20px 60px; }
             .guide-text { font-size: 17px; max-width: 350px; }
+            .creator-link { font-size: 16px; }
         }
     </style>
 </head>
@@ -583,7 +604,10 @@
         
         <div class="welcome-bottom">
             تم تصميم وتطوير هذه الجولة بواسطة الطالب:
-            <div class="creator-name">عبدالسلام احمد</div>
+            <br>
+            <a href="https://www.instagram.com/abd.ahasan?igsh=dHk3bnNpd3J2M3Y5" target="_blank" class="creator-link" title="زيارة حساب عبدالسلام على إنستغرام">
+                <i class="fab fa-instagram"></i> عبدالسلام احمد
+            </a>
         </div>
     </div>
 
