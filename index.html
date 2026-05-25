@@ -59,6 +59,14 @@
             gap: 6px;
         }
 
+        /* تحسين روابط الصور لمنع أي تشويه بصري */
+        .logos a {
+            display: inline-block;
+            line-height: 0;
+            text-decoration: none;
+            outline: none;
+        }
+
         .header-logo {
             width: 32px;
             height: 32px;
@@ -475,6 +483,13 @@
             gap: 20px;
         }
 
+        .welcome-logos a {
+            display: inline-block;
+            line-height: 0;
+            text-decoration: none;
+            outline: none;
+        }
+
         .welcome-logo {
             width: 80px;
             height: 80px;
@@ -681,7 +696,6 @@
     <script>
         function startTour() {
             document.getElementById('welcomeOverlay').classList.add('hidden');
-            
             setTimeout(() => {
                 document.getElementById('userGuideOverlay').classList.add('active');
             }, 600);
@@ -721,9 +735,7 @@
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (gl) {
-                    return gl.getParameter(gl.MAX_TEXTURE_SIZE);
-                }
+                if (gl) return gl.getParameter(gl.MAX_TEXTURE_SIZE);
             } catch (e) {
                 console.error("WebGL support error");
             }
@@ -748,16 +760,13 @@
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     resolve(canvas.toDataURL('image/jpeg', 0.85));
                 };
-                img.onerror = function() {
-                    resolve(url);
-                };
+                img.onerror = function() { resolve(url); };
                 img.src = url;
             });
         }
 
         function triggerSmartPreload(currentIndex) {
             if (preloadTimeout) clearTimeout(preloadTimeout);
-
             preloadTimeout = setTimeout(async () => {
                 const nextIndex = (currentIndex + 1) % scenesData.length;
                 const prevIndex = (currentIndex - 1 + scenesData.length) % scenesData.length;
@@ -765,7 +774,6 @@
                 if (!scenesData[nextIndex].processedImg) {
                     scenesData[nextIndex].processedImg = await resizeImageIfNeeded(scenesData[nextIndex].img, MAX_ALLOWED_SIZE);
                 }
-
                 if (!scenesData[prevIndex].processedImg) {
                     scenesData[prevIndex].processedImg = await resizeImageIfNeeded(scenesData[prevIndex].img, MAX_ALLOWED_SIZE);
                 }
@@ -773,9 +781,7 @@
         }
 
         function stopAutoRotate() {
-            if (viewer) {
-                viewer.stopAutoRotate();
-            }
+            if (viewer) viewer.stopAutoRotate();
             if (autoRotateTimeout) clearTimeout(autoRotateTimeout);
         }
 
@@ -785,11 +791,8 @@
                 !document.getElementById('welcomeOverlay').classList.contains('hidden')) {
                 return;
             }
-            
             autoRotateTimeout = setTimeout(() => {
-                if (viewer) {
-                    viewer.startAutoRotate(ROTATE_SPEED);
-                }
+                if (viewer) viewer.startAutoRotate(ROTATE_SPEED);
             }, IDLE_TIME_BEFORE_ROTATE);
         }
 
@@ -813,9 +816,7 @@
                 autoLoad: true
             };
 
-            if (viewer !== null) {
-                viewer.destroy();
-            }
+            if (viewer !== null) viewer.destroy();
 
             viewer = pannellum.viewer('panorama', {
                 default: {
@@ -840,16 +841,13 @@
             panoramaEl.addEventListener('mousedown', stopAutoRotate);
             panoramaEl.addEventListener('touchstart', stopAutoRotate, {passive: true});
             panoramaEl.addEventListener('wheel', stopAutoRotate);
-            
             panoramaEl.addEventListener('mouseup', resetAutoRotateTimer);
             panoramaEl.addEventListener('touchend', resetAutoRotateTimer);
 
             if(blurLoader) blurLoader.classList.remove('active');
             triggerSmartPreload(currentIndex);
 
-            setTimeout(() => {
-                if(viewer) viewer.resize();
-            }, 500);
+            setTimeout(() => { if(viewer) viewer.resize(); }, 500);
         }
 
         async function goTo(index) {
@@ -870,27 +868,17 @@
                     panorama: scene.processedImg,
                     autoLoad: true
                 });
-                
                 viewer.loadScene(scene.id);
-                
                 if(blurLoader) blurLoader.classList.remove('active');
             }
         }
 
-        function nextScene() {
-            let nextIdx = (currentIndex + 1) % scenesData.length;
-            goTo(nextIdx);
-        }
-
-        function prevScene() {
-            let prevIdx = (currentIndex - 1 + scenesData.length) % scenesData.length;
-            goTo(prevIdx);
-        }
+        function nextScene() { goTo((currentIndex + 1) % scenesData.length); }
+        function prevScene() { goTo((currentIndex - 1 + scenesData.length) % scenesData.length); }
 
         function renderUIElements() {
             const listContainer = document.getElementById('scenesListContainer');
             const dotsContainer = document.getElementById('progressDotsContainer');
-            
             listContainer.innerHTML = '';
             dotsContainer.innerHTML = '';
 
@@ -915,11 +903,9 @@
 
         function updateUI() {
             document.getElementById('currentSceneName').innerText = scenesData[currentIndex].name;
-
             scenesData.forEach((scene, index) => {
                 const card = document.getElementById(`card-${index}`);
                 const dot = document.getElementById(`dot-${index}`);
-
                 if(card) card.classList.remove('active');
                 if(dot) dot.classList.remove('active', 'visited');
 
@@ -930,10 +916,7 @@
                     }
                     if(dot) dot.classList.add('active');
                 }
-                
-                if (visitedScenes.has(index) && dot) {
-                    dot.classList.add('visited');
-                }
+                if (visitedScenes.has(index) && dot) dot.classList.add('visited');
             });
         }
 
@@ -955,28 +938,33 @@
             resetAutoRotateTimer();
         };
 
-        searchInput.addEventListener('input', (e) => {
-            renderSearchResults(e.target.value);
-        });
+        searchInput.addEventListener('input', (e) => { renderSearchResults(e.target.value); });
 
         function renderSearchResults(query) {
             searchResults.innerHTML = '';
             const normalizeArabic = (text) => text.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').trim();
             const cleanQuery = normalizeArabic(query);
             
+            // إصلاح المنطق: إذا كان صندوق البحث فارغاً لا يستنفذ الذاكرة
+            if (cleanQuery === '') {
+                scenesData.forEach(scene => createResultItem(scene));
+                return;
+            }
+
             const filtered = scenesData.filter(s => normalizeArabic(s.name).includes(cleanQuery));
-            
-            filtered.forEach(scene => {
-                const item = document.createElement('div');
-                item.className = 'search-result-item';
-                item.innerText = scene.name;
-                item.onclick = () => {
-                    const idx = scenesData.findIndex(s => s.id === scene.id);
-                    goTo(idx);
-                    searchOverlay.classList.remove('active');
-                };
-                searchResults.appendChild(item);
-            });
+            filtered.forEach(scene => createResultItem(scene));
+        }
+
+        function createResultItem(scene) {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerText = scene.name;
+            item.onclick = () => {
+                const idx = scenesData.findIndex(s => s.id === scene.id);
+                goTo(idx);
+                searchOverlay.classList.remove('active');
+            };
+            searchResults.appendChild(item);
         }
 
         document.getElementById('shareBtn').onclick = async () => {
@@ -989,9 +977,7 @@
                         text: 'شاهد الجولة الافتراضية لكلية الإعلام',
                         url: url
                     });
-                } catch (err) {
-                    console.log('Share canceled', err);
-                }
+                } catch (err) { console.log('Share canceled', err); }
             } else {
                 navigator.clipboard.writeText(url);
                 alert('تم نسخ الرابط!');
@@ -1002,17 +988,14 @@
         document.getElementById('fullscreenBtn').onclick = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable fullscreen: ${err.message}`);
+                    console.log(`Error fullscreen: ${err.message}`);
                 });
             } else {
                 document.exitFullscreen();
             }
         };
 
-        window.addEventListener('resize', () => {
-            if (viewer) viewer.resize();
-        });
-
+        window.addEventListener('resize', () => { if (viewer) viewer.resize(); });
         window.onload = initViewer;
     </script>
 </body>
