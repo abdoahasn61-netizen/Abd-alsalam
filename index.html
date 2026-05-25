@@ -67,6 +67,11 @@
             border: 2px solid var(--border-color);
             object-fit: contain;
             padding: 2px;
+            transition: transform 0.2s ease;
+        }
+
+        .header-logo:hover {
+            transform: scale(1.1);
         }
 
         .title-container h1 {
@@ -182,7 +187,7 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.6; }
+            0 { transform: scale(1); opacity: 0.6; }
             50% { transform: scale(1.15); opacity: 1; }
             100% { transform: scale(1); opacity: 0.6; }
         }
@@ -478,6 +483,11 @@
             border: 3px solid var(--accent-yellow);
             padding: 5px;
             object-fit: contain;
+            transition: transform 0.2s ease;
+        }
+
+        .welcome-logo:hover {
+            transform: scale(1.08);
         }
 
         .welcome-title h1 {
@@ -554,8 +564,12 @@
     <div class="welcome-overlay" id="welcomeOverlay">
         <div class="welcome-top">
             <div class="welcome-logos">
-                <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="welcome-logo">
-                <img src="college.jpg" alt="شعار كلية الإعلام" class="welcome-logo">
+                <a href="https://uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لجامعة بغداد">
+                    <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="welcome-logo">
+                </a>
+                <a href="https://com.uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لكلية الإعلام">
+                    <img src="college.jpg" alt="شعار كلية الإعلام" class="welcome-logo">
+                </a>
             </div>
             <div class="welcome-title">
                 <h1>جولة كلية الإعلام الافتراضية</h1>
@@ -576,8 +590,12 @@
     <header>
         <div class="header-right">
             <div class="logos">
-                <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="header-logo">
-                <img src="college.jpg" alt="شعار كلية الإعلام" class="header-logo">
+                <a href="https://uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لجامعة بغداد">
+                    <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="header-logo">
+                </a>
+                <a href="https://com.uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لكلية الإعلام">
+                    <img src="college.jpg" alt="شعار كلية الإعلام" class="header-logo">
+                </a>
             </div>
             <div class="title-container">
                 <h1>كلية الإعلام - جامعة بغداد</h1>
@@ -625,7 +643,7 @@
                 <button class="nav-btn" onclick="nextScene()">التالي <i class="fas fa-caret-left"></i></button>
                 <button class="nav-btn" onclick="prevScene()"><i class="fas fa-caret-right"></i> السابق</button>
             </div>
-            <div class="locations-label">م مواقع الجولة</div>
+            <div class="locations-label">مواقع الجولة</div>
             <div class="scenes-list" id="scenesListContainer"></div>
         </aside>
     </div>
@@ -647,7 +665,6 @@
 
         function closeUserGuide() {
             document.getElementById('userGuideOverlay').classList.remove('active');
-            // بدء الدوران التلقائي بعد إغلاق الدليل مباشرة
             resetAutoRotateTimer();
         }
 
@@ -673,8 +690,8 @@
         const visitedScenes = new Set([0]);
         let preloadTimeout = null;
         let autoRotateTimeout = null;
-        const ROTATE_SPEED = 1.5; // سرعة دوران هادئة وسينمائية
-        const IDLE_TIME_BEFORE_ROTATE = 5000; // وقت الانتظار بالملي ثانية (5 ثوانٍ) قبل بدء التدوير
+        const ROTATE_SPEED = 1.5; 
+        const IDLE_TIME_BEFORE_ROTATE = 5000; 
 
         function getGlMaxTextureSize() {
             try {
@@ -731,7 +748,6 @@
             }, 2000);
         }
 
-        // دوال التحكم الذكي بالتدوير التلقائي السينمائي
         function stopAutoRotate() {
             if (viewer) {
                 viewer.stopAutoRotate();
@@ -741,7 +757,6 @@
 
         function resetAutoRotateTimer() {
             stopAutoRotate();
-            // إذا كان دليل المستخدم أو شاشة الترحيب ظاهرة، لا نشغل التدوير
             if (document.getElementById('userGuideOverlay').classList.contains('active') || 
                 !document.getElementById('welcomeOverlay').classList.contains('hidden')) {
                 return;
@@ -794,16 +809,14 @@
                 visitedScenes.add(currentIndex);
                 updateUI();
                 triggerSmartPreload(currentIndex);
-                resetAutoRotateTimer(); // إعادة ضبط الموقت عند دخول مشهد جديد
+                resetAutoRotateTimer(); 
             });
 
-            // ربط أحداث تفاعل المستخدم لإيقاف التدوير فوراً عند لمس الشاشة
             const panoramaEl = document.getElementById('panorama');
             panoramaEl.addEventListener('mousedown', stopAutoRotate);
             panoramaEl.addEventListener('touchstart', stopAutoRotate, {passive: true});
             panoramaEl.addEventListener('wheel', stopAutoRotate);
             
-            // إعادة تشغيل الموقت بعد انتهاء تفاعل المستخدم وتركه للشاشة
             panoramaEl.addEventListener('mouseup', resetAutoRotateTimer);
             panoramaEl.addEventListener('touchend', resetAutoRotateTimer);
 
@@ -816,7 +829,7 @@
         }
 
         async function goTo(index) {
-            stopAutoRotate(); // إيقاف الدوران أثناء مرحلة الانتقال
+            stopAutoRotate(); 
             if (index >= 0 && index < scenesData.length) {
                 const scene = scenesData[index];
                 const blurLoader = document.getElementById('blurLoader');
