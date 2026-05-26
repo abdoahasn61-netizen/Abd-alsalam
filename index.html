@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>جولة افتراضية 360 - كلية الإعلام</title>
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/pannellum@2.5.6/build/pannellum.css">
@@ -33,9 +33,10 @@
             color: var(--text-light);
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            height: 100dvh;
+            height: 100vh; /* حماية للمتصفحات القديمة */
+            height: 100dvh; /* للمتصفحات الحديثة */
             overflow: hidden;
+            -webkit-text-size-adjust: 100%;
         }
 
         /* --- شريط الرأس العلوي --- */
@@ -46,6 +47,7 @@
             padding: 6px 10px;
             background-color: var(--bg-dark);
             border-bottom: 2px solid var(--accent-yellow);
+            z-index: 30;
         }
 
         .header-right {
@@ -59,7 +61,6 @@
             gap: 6px;
         }
 
-        /* تحسين روابط الصور لمنع أي تشويه بصري */
         .logos a {
             display: inline-block;
             line-height: 0;
@@ -119,6 +120,7 @@
             flex-direction: column;
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
         /* --- مساحة عرض 360 --- */
@@ -150,6 +152,7 @@
             align-items: center;
             gap: 6px;
             border-bottom: 2px solid var(--accent-yellow);
+            white-space: nowrap;
         }
 
         .scene-label-overlay i {
@@ -300,6 +303,7 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            z-index: 20;
         }
 
         .controls-row {
@@ -322,6 +326,7 @@
             gap: 6px;
             font-size: 13px;
             transition: 0.3s;
+            user-select: none;
         }
 
         .nav-btn:hover {
@@ -354,6 +359,7 @@
             padding-bottom: 5px;
             scrollbar-width: thin;
             scrollbar-color: var(--border-color) var(--bg-dark);
+            -webkit-overflow-scrolling: touch;
         }
 
         .scene-card {
@@ -367,6 +373,7 @@
             gap: 8px;
             cursor: pointer;
             transition: 0.3s;
+            user-select: none;
         }
 
         .scene-card.active {
@@ -419,6 +426,7 @@
             color: #fff;
             font-size: 24px;
             cursor: pointer;
+            padding: 5px;
         }
 
         .search-input {
@@ -431,6 +439,8 @@
             font-size: 16px;
             margin-bottom: 20px;
             direction: rtl;
+            background-color: #fff;
+            color: #000;
         }
 
         .search-results {
@@ -439,6 +449,8 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+            overflow-y: auto;
+            max-height: 60vh;
         }
 
         .search-result-item {
@@ -462,7 +474,7 @@
             align-items: center;
             padding: 40px 20px;
             text-align: center;
-            transition: 0.5s;
+            transition: opacity 0.5s, visibility 0.5s;
             background-image: radial-gradient(circle at center, #163663 0%, #0b2342 100%);
         }
 
@@ -532,6 +544,7 @@
             gap: 10px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.3);
             transition: 0.3s;
+            user-select: none;
         }
 
         .start-btn:hover {
@@ -546,7 +559,6 @@
             width: 80%;
         }
 
-        /* تمييز الرابط الشخصي للمطور */
         .creator-link {
             display: inline-flex;
             align-items: center;
@@ -600,10 +612,10 @@
     <div class="welcome-overlay" id="welcomeOverlay">
         <div class="welcome-top">
             <div class="welcome-logos">
-                <a href="https://uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لجامعة بغداد">
+                <a href="https://uobaghdad.edu.iq" target="_blank" rel="noopener" title="الموقع الرسمي لجامعة بغداد">
                     <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="welcome-logo">
                 </a>
-                <a href="https://comc.uobaghdad.edu.iq/" target="_blank" title="الموقع الرسمي لكلية الإعلام">
+                <a href="https://comc.uobaghdad.edu.iq/" target="_blank" rel="noopener" title="الموقع الرسمي لكلية الإعلام">
                     <img src="college.jpg" alt="شعار كلية الإعلام" class="welcome-logo">
                 </a>
             </div>
@@ -620,7 +632,7 @@
         <div class="welcome-bottom">
             تم تصميم وتطوير هذه الجولة بواسطة الطالب:
             <br>
-            <a href="https://www.instagram.com/abd.ahasan?igsh=dHk3bnNpd3J2M3Y5" target="_blank" class="creator-link" title="زيارة حساب عبدالسلام على إنستغرام">
+            <a href="https://www.instagram.com/abd.ahasan?igsh=dHk3bnNpd3J2M3Y5" target="_blank" rel="noopener" class="creator-link" title="زيارة حساب عبدالسلام على إنستغرام">
                 <i class="fab fa-instagram"></i> عبدالسلام احمد
             </a>
         </div>
@@ -629,10 +641,10 @@
     <header>
         <div class="header-right">
             <div class="logos">
-                <a href="https://uobaghdad.edu.iq" target="_blank" title="الموقع الرسمي لجامعة بغداد">
+                <a href="https://uobaghdad.edu.iq" target="_blank" rel="noopener" title="الموقع الرسمي لجامعة بغداد">
                     <img src="FB_IMG_1779471134189.jpg" alt="شعار جامعة بغداد" class="header-logo">
                 </a>
-                <a href="https://comc.uobaghdad.edu.iq/" target="_blank" title="الموقع الرسمي لكلية الإعلام">
+                <a href="https://comc.uobaghdad.edu.iq/" target="_blank" rel="noopener" title="الموقع الرسمي لكلية الإعلام">
                     <img src="college.jpg" alt="شعار كلية الإعلام" class="header-logo">
                 </a>
             </div>
@@ -642,8 +654,8 @@
             </div>
         </div>
         <div class="header-left">
-            <button class="icon-btn" id="searchBtn"><i class="fas fa-search"></i></button>
-            <button class="icon-btn" id="shareBtn"><i class="fas fa-arrow-up-right-from-square"></i></button>
+            <button class="icon-btn" id="searchBtn" aria-label="بحث"><i class="fas fa-search"></i></button>
+            <button class="icon-btn" id="shareBtn" aria-label="مشاركة"><i class="fas fa-arrow-up-right-from-square"></i></button>
         </div>
     </header>
 
@@ -666,7 +678,7 @@
                     <div class="guide-hand-icon"><i class="fas fa-hand-pointer"></i></div>
                     <div class="guide-text">اسحب الشاشة أو حرك إصبعك في جميع الاتجاهات لاستكشاف القاعة بزاوية 360 درجة.</div>
                     <div class="guide-text" style="color: var(--accent-yellow); margin-top: 5px; font-size: 13px;">
-                        <i class="fas fa-th-list"></i> استخدم اللوحة السفلية للتنقل بين غرف الكلية.
+                        <i class="fas fa-th-list"></i> استخدم اللوحة الجانبية للتنقل بين غرف الكلية.
                     </div>
                     <div class="guide-close-tip">اضغط في أي مكان بالشاشة لبدء الاستكشاف</div>
                 </div>
@@ -678,7 +690,7 @@
 
         <aside class="nav-panel">
             <div class="controls-row">
-                <button class="fullscreen-btn" id="fullscreenBtn"><i class="fas fa-expand"></i></button>
+                <button class="fullscreen-btn" id="fullscreenBtn" aria-label="ملء الشاشة"><i class="fas fa-expand"></i></button>
                 <button class="nav-btn" onclick="nextScene()">التالي <i class="fas fa-caret-left"></i></button>
                 <button class="nav-btn" onclick="prevScene()"><i class="fas fa-caret-right"></i> السابق</button>
             </div>
@@ -706,21 +718,22 @@
             resetAutoRotateTimer();
         }
 
+        // تم تنظيف أسماء الصور برمجياً لضمان استقرار التحميل من السيرفرات الرسمية دون مشاكل
         const scenesData = [
             { id: 'scene0', name: 'المتحف', img: 'museum1.jpg' }, 
-            { id: 'scene1', name: 'الإذاعة¹', img: 'download.bin (19).jpg' },
-            { id: 'scene2', name: 'الإذاعة²', img: 'download.bin (10).jpg' },
-            { id: 'scene3', name: 'الأستديو19¹', img: 'PXL_20260429_113139523.PHOTOSPHERE.jpg' },
-            { id: 'scene4', name: 'الأستديو19²', img: 'download.bin (20).jpg' },
-            { id: 'scene5', name: 'مسرح السلام¹', img: 'download.bin (13).jpg' },
-            { id: 'scene6', name: 'مسرح السلام²', img: 'PXL_20260429_114536929.PHOTOSPHERE.jpg' },
-            { id: 'scene7', name: 'غرفة الأخبار', img: 'download.bin (14).jpg' },
-            { id: 'scene8', name: 'قاعة تدريسية¹', img: 'download.bin (15).jpg' },
-            { id: 'scene9', name: 'قاعة تدريسية²', img: 'download.bin (16).jpg' },
-            { id: 'scene10', name: 'مختبر المدى¹', img: 'PXL_20260429_131122064.PHOTOSPHERE.jpg' },
-            { id: 'scene11', name: 'مختبر المدى²', img: 'download.bin (17).jpg' },
-            { id: 'scene12', name: 'قاعة الحرية¹', img: 'PXL_20260503_131829373.PHOTOSPHERE.jpg' },
-            { id: 'scene13', name: 'قاعة الحرية²', img: 'PXL_20260503_132121708.PHOTOSPHERE.jpg' }
+            { id: 'scene1', name: 'الإذاعة¹', img: 'radio1.jpg' },
+            { id: 'scene2', name: 'الإذاعة²', img: 'radio2.jpg' },
+            { id: 'scene3', name: 'الأستديو19¹', img: 'studio19_1.jpg' },
+            { id: 'scene4', name: 'الأستديو19²', img: 'studio19_2.jpg' },
+            { id: 'scene5', name: 'مسرح السلام¹', img: 'salam_hall1.jpg' },
+            { id: 'scene6', name: 'مسرح السلام²', img: 'salam_hall2.jpg' },
+            { id: 'scene7', name: 'غرفة الأخبار', img: 'news_room.jpg' },
+            { id: 'scene8', name: 'قاعة تدريسية¹', img: 'class1.jpg' },
+            { id: 'scene9', name: 'قاعة تدريسية²', img: 'class2.jpg' },
+            { id: 'scene10', name: 'مختبر المدى¹', img: 'mada_lab1.jpg' },
+            { id: 'scene11', name: 'مختبر المدى²', img: 'mada_lab2.jpg' },
+            { id: 'scene12', name: 'قاعة الحرية¹', img: 'horiah_hall1.jpg' },
+            { id: 'scene13', name: 'قاعة الحرية²', img: 'horiah_hall2.jpg' }
         ];
 
         let viewer = null;
@@ -735,9 +748,13 @@
             try {
                 const canvas = document.createElement('canvas');
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
-                if (gl) return gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                if (gl) {
+                    const max = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+                    canvas.width = 0; canvas.height = 0; // تنظيف الذاكرة الفوري
+                    return max;
+                }
             } catch (e) {
-                console.error("WebGL support error");
+                console.error("WebGL limit check error");
             }
             return 4096; 
         }
@@ -758,18 +775,22 @@
                     canvas.width = maxSize;
                     canvas.height = (img.height / img.width) * maxSize; 
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    
+                    // منع تسريب الذاكرة (Memory Leak Fix)
+                    canvas.width = 0; canvas.height = 0;
+                    resolve(dataUrl);
                 };
                 img.onerror = function() { resolve(url); };
                 img.src = url;
             });
         }
 
-        function triggerSmartPreload(currentIndex) {
+        function triggerSmartPreload(currentIdx) {
             if (preloadTimeout) clearTimeout(preloadTimeout);
             preloadTimeout = setTimeout(async () => {
-                const nextIndex = (currentIndex + 1) % scenesData.length;
-                const prevIndex = (currentIndex - 1 + scenesData.length) % scenesData.length;
+                const nextIndex = (currentIdx + 1) % scenesData.length;
+                const prevIndex = (currentIdx - 1 + scenesData.length) % scenesData.length;
 
                 if (!scenesData[nextIndex].processedImg) {
                     scenesData[nextIndex].processedImg = await resizeImageIfNeeded(scenesData[nextIndex].img, MAX_ALLOWED_SIZE);
@@ -945,7 +966,6 @@
             const normalizeArabic = (text) => text.replace(/[أإآ]/g, 'ا').replace(/ة/g, 'ه').trim();
             const cleanQuery = normalizeArabic(query);
             
-            // إصلاح المنطق: إذا كان صندوق البحث فارغاً لا يستنفذ الذاكرة
             if (cleanQuery === '') {
                 scenesData.forEach(scene => createResultItem(scene));
                 return;
@@ -973,14 +993,14 @@
             if (navigator.share) {
                 try {
                     await navigator.share({
-                        title: 'الجولة الافتراضية 360',
-                        text: 'شاهد الجولة الافتراضية لكلية الإعلام',
+                        title: 'الجولة الافتراضية 360 - كلية الإعلام',
+                        text: 'شاهد الجولة الافتراضية الرسمية لكلية الإعلام بجامعة بغداد',
                         url: url
                     });
                 } catch (err) { console.log('Share canceled', err); }
             } else {
                 navigator.clipboard.writeText(url);
-                alert('تم نسخ الرابط!');
+                alert('تم نسخ الرابط الحصري للموقع بنجاح!');
             }
             resetAutoRotateTimer();
         };
@@ -988,7 +1008,7 @@
         document.getElementById('fullscreenBtn').onclick = () => {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => {
-                    console.log(`Error fullscreen: ${err.message}`);
+                    console.log(`Error fullscreen query: ${err.message}`);
                 });
             } else {
                 document.exitFullscreen();
